@@ -3,8 +3,8 @@
 import React from 'react'
 import { StyleSheet, View, TextInput, Button, Text, FlatList, ActivityIndicator } from 'react-native'
 import FilmItem from './FilmItem'
+import FilmList from './FilmList'
 import { getFilmsFromApiWithSearchedText } from '../API/TMDBApi'
-import { connect } from 'react-redux'
 
 class Search extends React.Component {
 
@@ -72,23 +72,13 @@ class Search extends React.Component {
           onSubmitEditing={() => this._searchFilms()}
         />
         <Button style={{ height: 50 }} title='Rechercher' onPress={() => this._searchFilms()}/>
-        <FlatList
-          data={this.state.films}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({item}) =>
-            <FilmItem
-              film={item}
-              // Ajout d'une props isFilmFavorite pour indiquer à l'item d'afficher un 🖤 ou non
-              isFilmFavorite={(this.props.favoritesFilm.findIndex(film => film.id === item.id) !== -1) ? true : false}
-              displayDetailForFilm={this._displayDetailForFilm}
-            />
-          }
-          onEndReachedThreshold={0.5}
-          onEndReached={() => {
-              if (this.state.films.length > 0 && this.page < this.totalPages) { // On vérifie également qu'on n'a pas atteint la fin de la pagination (totalPages) avant de charger plus d'éléments
-                 this._loadFilms()
-              }
-          }}
+        <FilmList
+          films={this.state.films}
+          navigation={this.props.navigation}
+          loadFilms={this._loadFilms}
+          page={this.page}
+          totalPages={this.totalPages}
+          favoriteList={false} // Ici j'ai simplement ajouté un booléen à false pour indiquer qu'on n'est pas dans le cas de l'affichage de la liste des films favoris. Et ainsi pouvoir déclencher le chargement de plus de films lorsque l'utilisateur scrolle.
         />
         {this._displayLoading()}
       </View>
@@ -119,11 +109,4 @@ const styles = StyleSheet.create({
   }
 })
 
-// On connecte le store Redux, ainsi que les films favoris du state de notre application, à notre component Search
-const mapStateToProps = state => {
-  return {
-    favoritesFilm: state.favoritesFilm
-  }
-}
-
-export default connect(mapStateToProps)(Search)
+export default Search
